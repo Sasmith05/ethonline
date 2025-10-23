@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Film, Ticket, Clapperboard, Popcorn, Video, Glasses } from "lucide-react";
+import React, { useContext } from "react";
+import { WalletContext } from "@/components/WalletProvider";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -35,6 +37,41 @@ export default function LandingPage() {
       transition: { duration: 0.8 },
     },
   };
+
+  const wallet = useContext(WalletContext)
+  async function goToAdmin() {
+    try {
+      if (!wallet) {
+        // if context unavailable, avoid navigating silently
+        console.error('Wallet context missing')
+        return
+      }
+      if (!wallet.address) {
+        await wallet.connect()
+        if (!wallet.address) return
+      }
+      router.push('/admin')
+    } catch (err) {
+      // user rejected or no provider; gracefully do nothing
+      console.error('Failed to connect before navigating to admin', err)
+    }
+  }
+
+  async function goToBook() {
+    try {
+      if (!wallet) {
+        console.error('Wallet context missing')
+        return
+      }
+      if (!wallet.address) {
+        await wallet.connect()
+        if (!wallet.address) return
+      }
+      router.push('/book')
+    } catch (err) {
+      console.error('Failed to connect before navigating to book', err)
+    }
+  }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-black via-gray-900 to-black overflow-hidden">
@@ -186,7 +223,7 @@ export default function LandingPage() {
           >
             {/* For Cine Users Button */}
             <motion.button
-              onClick={() => router.push("/book")}
+              onClick={goToBook}
               className="group relative px-10 py-5 bg-gradient-to-r from-primary to-accent text-white text-lg font-semibold rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300 overflow-hidden min-w-[240px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
@@ -202,7 +239,7 @@ export default function LandingPage() {
 
             {/* For Cine Admin Button */}
             <motion.button
-              onClick={() => router.push("/admin")}
+              onClick={goToAdmin}
               className="group relative px-10 py-5 bg-gradient-to-r from-accent to-primary text-white text-lg font-semibold rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(232,121,249,0.5)] transition-all duration-300 overflow-hidden min-w-[240px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
